@@ -1,0 +1,10 @@
+*.hdf5
+data/*
+!data/proj_shepplogan128.hdf5
+
+reconstructed/*
+!reconstructed/.gitkeep
+
+clFFT/build/*
+!clFFT/build/.gitkeep
+
