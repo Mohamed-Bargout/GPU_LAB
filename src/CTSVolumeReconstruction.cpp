@@ -29,9 +29,9 @@
 //////////////////////////////////////////////////////////////////////////////
 // Configuration
 //////////////////////////////////////////////////////////////////////////////
-// const std::string dataPath = "/lgrp/edu-2025-2-gpulab/Data/proj_shepplogan128.hdf5";
+const std::string dataPath = "/lgrp/edu-2025-2-gpulab/Data/proj_shepplogan128.hdf5";
 // const std::string dataPath = "/lgrp/edu-2025-2-gpulab/Data/proj_shepplogan512.hdf5";
-const std::string dataPath = "data/proj_shepplogan128.hdf5";
+// const std::string dataPath = "data/proj_shepplogan128.hdf5";
 
 // const std::string dataPath = "data/proj_shepplogan512.hdf5";
 
