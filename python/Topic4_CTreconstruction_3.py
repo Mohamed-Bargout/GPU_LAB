@@ -10,8 +10,7 @@ from hilbert_toolkit import hilbert_fft_marple as dht
 from hilbert_toolkit import hilbert_pad_simple
 #https://github.com/usnistgov/Hilbert
 
-import time
-timings = {}
+
 
 def get_pixelposition(width):
     # a_f: pixel position (pixel at the detecter center, u=a_f*pixelsize)  
@@ -35,39 +34,33 @@ def recon_3(proj,cb_para):
     pixelSize = cb_para['pixelSize'] 
 
 
+
     ## weight 1
-    t0 = time.perf_counter()
     u=-get_pixelposition(detector_width)* pixelSize   # detector position width
     v=-get_pixelposition(detector_height)* pixelSize   # detector position height
     xu,yu = np.meshgrid(u,v, indexing='ij')
     A=np.sqrt(SDD**2+xu**2+yu**2)
     cone_weight=np.tile(SOD/A,(num_projs,1,1))   #num_projs, width, height   3d
     proj=proj*cone_weight
-    print("weight1:", time.perf_counter() - t0)
-    timings["weight1"] = time.perf_counter() - t0
+
 
     ## derivative
-    t0 = time.perf_counter()
     dx=1
     for i in range(num_projs): 
         proj[i]=np.array([np.gradient((proj[i])[:,ii], dx)  for ii in  range(detector_height)]).T/pixelSize
     
     ## weight 2
-    t0 = time.perf_counter()
     weigth_2=np.tile(A**2,(num_projs,1,1))   #num_projs, width, height   3d
     proj=proj*weigth_2
-    print("derivative:", time.perf_counter() - t0)
-    timings["derivative"] = time.perf_counter() - t0
+
   
 
     ## Reconstruct image by interpolation
-    t0 = time.perf_counter()
     reconstructed = np.zeros((Volumen_num_xz, Volumen_num_xz,Volumen_num_y))
     radius = Volumen_num_xz // 2-0.5
     radius_z = Volumen_num_y // 2-0.5
     xpr,ypr,zpr = np.meshgrid((np.arange(Volumen_num_xz)-radius)*voxelSize,(np.arange(Volumen_num_xz)-radius)*voxelSize,(np.arange(Volumen_num_y)-radius_z)*voxelSize , indexing='ij')
-    print("weight2:", time.perf_counter() - t0)
-    timings["weight2"] = time.perf_counter() - t0
+    
 
     ## rotation angle
     angle_shift=-3*np.pi/2 #degree offset
@@ -86,15 +79,13 @@ def recon_3(proj,cb_para):
         
         reconstructed += interpolant((ai,bi)) * weight_sin /  weight_3
     reconstructed=-reconstructed*np.pi  /num_projs
-    print("backprojection:", time.perf_counter() - t0)
-    timings["backprojection"] = time.perf_counter() - t0
+    
+
  
-    t0 = time.perf_counter()
     for j in range(Volumen_num_xz):   #y
         for k in range(Volumen_num_y):   #z
             reconstructed[:,j,k]=dht_pad(reconstructed[:,j,k]) 
-    print("fft:", time.perf_counter() - t0)
-    timings["fft"] = time.perf_counter() - t0
+       
                 
     return reconstructed/(-2*np.pi)
 
@@ -102,8 +93,7 @@ def recon_3(proj,cb_para):
 
 if __name__ == '__main__':
     
-    # path_data='/lgrp/edu-2025-2-gpulab/Data/proj_shepplogan128.hdf5'
-    path_data='/lgrp/edu-2025-2-gpulab/Data/proj_shepplogan512.hdf5'
+    path_data='/lgrp/edu-2025-2-gpulab/Data/proj_shepplogan128.hdf5'
 
     with h5py.File(path_data,'r') as f:
 
@@ -134,15 +124,7 @@ if __name__ == '__main__':
 
         projection=f['Projection'][:,:,:]
 
-        t_total_start = time.perf_counter()
         volume=recon_3(projection,cb_para)
-        print("total:", time.perf_counter() - t_total_start)
-        timings["total"] = time.perf_counter() - t_total_start
-
-        with open("timings.txt", "w") as f:
-            for k, v in timings.items():
-                f.write(f"{k}: {v}\n")
-        
         print(volume.shape)
   
 
